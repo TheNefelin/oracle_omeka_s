@@ -1,0 +1,23 @@
+# Credenciales - NUNCA subir al repositorio
+.env
+*.env
+!.env.example
+
+# Llaves SSH y respaldos de llaves
+*.pem
+*.ppk
+id_rsa*
+id_ed25519*
+*.pub
+respaldo_llaves/
+
+# Backups locales
+*.sql
+*.sql.gz
+*.tar.gz
+backup_*
+backups/
+
+# Datos reales del servidor (IP, OCIDs, etc.)
+servidor.local.md
+*.local.md
