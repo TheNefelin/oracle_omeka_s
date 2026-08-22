@@ -131,29 +131,26 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 
 ## Fase 3 — Desplegar Omeka S
 
-- [ ] Local: `cp .env.example .env` y editar contraseñas reales
-- [ ] En VM: `mkdir -p ~/omeka`
-- [ ] Subir archivos: `scp docker-compose.yml .env ubuntu@IP_PUBLICA:~/omeka/`
-- [ ] En el servidor: `cd ~/omeka && docker compose up -d`
-- [ ] Verificar: `docker compose ps` (ambos healthy/running)
+- [x] Local: `cp .env.example .env` y editar contraseñas reales
+- [x] En VM: `mkdir -p ~/omeka`
+- [x] Subir archivos: `scp docker-compose.yml .env ubuntu@IP_PUBLICA:~/omeka/` ✔ (2026-08-21)
+- [x] En el servidor: `cd ~/omeka && docker compose up -d` ✔ (imágenes ARM descargadas, red y volúmenes `db_data`/`omeka_files` creados)
+- [x] Verificar: `docker compose ps` (ambos healthy) ✔ (2026-08-21)
 
 ---
 
 ## Fase 4 — Abrir acceso web
 
-- [ ] Consola OCI: VCN → Security List → agregar regla de entrada para
-      **8080/tcp** (temporal, para probar Omeka directo). Las reglas de
-      80/443 se agregan en Fase 6 con el proxy HTTPS
-- [ ] iptables del SO (Ubuntu en OCI trae firewall restrictivo):
-
-```bash
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 8080 -j ACCEPT
-sudo netfilter-persistent save
-```
-
-- [ ] Abrir `http://IP_PUBLICA:8080` desde el navegador → pantalla de
-      instalación/login de Omeka S
-- [ ] Entrar al admin con el correo y clave definidos en `.env`
+- [x] Consola OCI: VCN → Security Lists → Default Security List → regla de
+      entrada para **8080/tcp**, descripción "Omeka S temporal" ✔
+      (2026-08-21). Las reglas de 80/443 se agregan en Fase 6 con HTTPS
+- [x] iptables del SO: **no requerido para puertos de contenedores** —
+      Docker enruta ese tráfico por sus cadenas `FORWARD` sin pasar por la
+      cadena `INPUT` del host. Solo filtra el Security List de OCI
+      (hallazgo documentado en ORACLE_CLOUD_FREE_TIER.md §6)
+- [x] Abrir `http://IP_PUBLICA:8080` desde el navegador ✔ sitio accesible
+- [x] Instalación completada manualmente vía `/install` y acceso a `/admin`
+      verificado ✔ (2026-08-21)
 
 ---
 
@@ -233,3 +230,6 @@ Total estimado: 70 horas (detalle completo en el informe institucional).
 | 2026-08-21 | Decisión de arquitectura: datos en volúmenes Docker (`db_data`, `omeka_files`) sobre el boot volume; contenedores desechables. Prohibido `down -v`. Backups como capa extra (Fase 7) |
 | 2026-08-21 | Llaves SSH generadas (ed25519). Clave pública lista para pegar en OCI |
 | 2026-08-21 | Decisión: despliegue con Docker (no nativo). Razones: misma config local/producción, upgrades simples, migración fácil, aislamiento |
+| 2026-08-21 | Despliegue exitoso: `omeka` + `omeka-mariadb` healthy en ARM. Sitio accesible por IP:8080 |
+| 2026-08-21 | Hallazgo: puertos Docker no requieren iptables del host (solo Security List OCI); se corrige documentación §6 de la guía Oracle |
+| 2026-08-21 | Falso positivo "`.env` no copiado": los archivos con punto inicial son ocultos para `ls`; verificar siempre con `ls -la` |

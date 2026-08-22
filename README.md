@@ -173,6 +173,15 @@ Docker los levanta automáticamente.
 
 ---
 
+## Referencias
+
+* [Manual de usuario de Omeka S](https://omeka.org/s/docs/user-manual/)
+* [Instalación de Omeka S](https://omeka.org/s/docs/user-manual/install/)
+* [Imagen Docker erseco/alpine-omeka-s](https://github.com/erseco/alpine-omeka-s)
+* [Límites Always Free de Oracle Cloud](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
+
+---
+
 # Próximos pasos
 
 Una vez que Omeka S esté funcionando localmente:

@@ -145,27 +145,38 @@ docker compose logs -f omeka
 Omeka S quedará disponible en `http://IP_PUBLICA:8080`.
 
 > Nota: la instalación automática de Omeka solo se ejecuta si
-> `OMEKA_ADMIN_EMAIL`, `OMEKA_ADMIN_PASSWORD` y `OMEKA_SITE_TITLE` están
-> definidos en `.env`, y solo la primera vez.
+> `OMEKA_ADMIN_EMAIL`, `OMEKA_ADMIN_NAME`, `OMEKA_ADMIN_PASSWORD` y
+> `OMEKA_SITE_TITLE` están definidos en `.env`, y solo la primera vez.
+> Si falta cualquiera de los cuatro, el contenedor arranca igual pero la
+> instalación debe completarse manualmente en `/install`.
 
 ---
 
 # 6. Seguridad básica
 
-## Dos firewalls, no uno
+## Dos capas de firewall
 
-En Oracle Cloud hay que abrir puertos en **dos lugares**:
+1. **Security List / NSG de la VCN** (consola OCI): el filtro real del
+   tráfico entrante.
+2. **Firewall del sistema operativo**: Ubuntu en OCI trae iptables con una
+   regla restrictiva preinstalada en la cadena `INPUT`.
 
-1. **Security List / NSG de la VCN** (consola OCI):
-   permitir `22/tcp`, `80/tcp`, `443/tcp`.
-2. **Firewall del sistema operativo**: las imágenes de Ubuntu en OCI traen
-   reglas de iptables restrictivas preinstaladas:
+> **Hallazgo verificado en este despliegue:** los puertos publicados por
+> contenedores Docker (`ports:` en el compose) **no pasan** por la cadena
+> `INPUT` del host — Docker enruta ese tráfico por sus propias cadenas
+> (`FORWARD`). Para exponer Omeka S basta abrir el puerto en el Security
+> List; no hay que tocar iptables.
+
+Las reglas manuales de iptables solo aplican a servicios corriendo
+directamente en la VM (sin contenedor):
 
 ```bash
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport PUERTO -j ACCEPT
 sudo netfilter-persistent save
 ```
+
+La posición `INPUT 6` importa: inserta la regla antes de la que rechaza
+todo el tráfico.
 
 ## Recomendaciones
 
@@ -304,7 +315,7 @@ Cuando crezca:
 
 [ ] MariaDB sin puerto público
 
-[ ] Security List OCI + iptables del SO configurados
+[ ] Security List OCI configurado (iptables no aplica a puertos de contenedores, ver §6)
 
 [ ] Usuario SSH solo con llave
 
