@@ -156,11 +156,14 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 
 ## Fase 5 — Configurar el contenido (dentro de Omeka S)
 
-- [ ] Cambiar idioma a español si corresponde
-- [ ] Crear item sets (colecciones) para libros y documentos históricos
-- [ ] Definir plantillas de metadatos
-- [ ] Crear el sitio público y su tema
-- [ ] Subir material de prueba
+- [x] Interfaz en español ✔ (2026-08-23)
+- [x] Colecciones creadas: Actas de Directorio, Registros de Socios,
+      Correspondencia, Estatutos y Reglamentos, Fotografías ✔
+- [x] Plantilla de recursos `Documento histórico` (7 campos Dublin Core;
+      Título obligatorio; etiquetas alternativas en español) ✔
+- [x] Sitio público creado (`archivo-historico-supov`) con colecciones
+      asignadas y página `Inicio` como página principal ✔
+- [x] Elemento de prueba con medio subido y colección asignada ✔
 
 ---
 
