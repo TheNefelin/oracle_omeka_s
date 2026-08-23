@@ -92,6 +92,8 @@ Copy-Item $HOME\.ssh\id_ed25519 D:\Repo\Cloud\respaldo_llaves\
 Copy-Item $HOME\.ssh\id_ed25519.pub D:\Repo\Cloud\respaldo_llaves\
 ```
 
+Alternativa recomendada adicional: gestor de contraseñas (Bitwarden, KeePass).
+
 ## 10. Instalar Omeka
 - Crear carpeta en la VM:
 ```sh
@@ -111,7 +113,57 @@ docker compose ps
 docker compose logs -f omeka
 ```
 
-Alternativa recomendada adicional: gestor de contraseñas (Bitwarden, KeePass).
+## 11. Omeka Themes
+- [omeka themes](https://omeka.org/s/themes/)
+```sh
+cd omeka
+docker compose exec omeka omeka-s-cli theme:list
+docker compose exec omeka omeka-s-cli theme:download lively
+```
+
+## 12. Script respaldo MariaDB + Archivos
+```sh
+cd D:\Repo\Cloud\oracle_omeka_s
+ssh ubuntu@IP_PUBLICA "mkdir -p ~/omeka/scripts"
+scp scripts/respaldo.sh ubuntu@IP_PUBLICA:~/omeka/scripts/
+```
+- Ejecutar el script
+```sh
+chmod +x ~/omeka/scripts/respaldo.sh
+~/omeka/scripts/respaldo.sh
+ls -lh ~/omeka-backups/
+```
+- Ver recursos físicos
+```sh
+docker run --rm -v omeka_omeka_files:/data alpine find /data/files -type f
+```
+- Restaurar respaldo
+
+> Los nombres de archivo (`db_FECHA_HHMM.sql`, `files_FECHA_HHMM.tar.gz`)
+> cambian con cada respaldo — usa el más reciente de `~/omeka-backups/`.
+
+```sh
+cd ~/omeka
+# 1. Detener Omeka para que nada escriba durante la operación
+docker compose stop omeka
+# 2. Vaciar y recrear la base de datos (usa el nombre de TU .env)
+docker compose exec -T mariadb sh -c 'exec mariadb -u root -p"$MARIADB_ROOT_PASSWORD" -e "DROP DATABASE $MARIADB_DATABASE; CREATE DATABASE $MARIADB_DATABASE;"'
+# 3. Importar el respaldo de las 22:32
+docker compose exec -T mariadb sh -c 'exec mariadb -u root -p"$MARIADB_ROOT_PASSWORD" $MARIADB_DATABASE' < ~/omeka-backups/db_2026-08-23_2232.sql
+# 4. Reincorporar los archivos del respaldo al volumen
+docker run --rm -v omeka_omeka_files:/data -v ~/omeka-backups:/backup alpine tar xzf /backup/files_2026-08-23_2232.tar.gz -C /data
+# 5. Corregir propietario de los archivos (igual que hace el contenedor)
+docker run --rm -v omeka_omeka_files:/data alpine chown -R nobody:nobody /data
+# 6. Levantar Omeka
+docker compose start omeka
+```
+
+- Verificar la recuperación:
+```sh
+docker run --rm -v omeka_omeka_files:/data alpine find /data/files -type f
+```
+El PDF eliminado debe reaparecer, y el elemento volver a la lista de
+Elementos del panel con su ficha funcional.
 
 ---
 

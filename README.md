@@ -128,6 +128,34 @@ Módulos y temas también pueden preinstalarse con las variables
 
 ## Copias de seguridad
 
+### Script automatizado (recomendado)
+
+`scripts/respaldo.sh` respalda base de datos + archivos subidos, con
+retención de 7 días:
+
+```bash
+# Primera vez: dar permiso de ejecución (en el servidor)
+chmod +x ~/omeka/scripts/respaldo.sh
+
+# Ejecutar manualmente
+~/omeka/scripts/respaldo.sh
+```
+
+Los respaldos quedan en `~/omeka-backups/` (permisos 700).
+
+Cron semanal (domingo 3:00 AM), en el servidor:
+
+```bash
+crontab -e
+# agregar la línea:
+0 3 * * 0 /home/ubuntu/omeka/scripts/respaldo.sh >> /home/ubuntu/omeka-backups/cron.log 2>&1
+```
+
+> ⚠️ Los respaldos viven en la misma VM. La subida a Object Storage
+> (protección fuera de la VM) está pendiente — ver Fase 7 en PROGRESO.md.
+
+### Comandos manuales
+
 Base de datos:
 
 ```bash

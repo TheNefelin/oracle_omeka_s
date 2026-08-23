@@ -167,7 +167,7 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 
 ---
 
-## Fase 6 — Dominio y HTTPS (opcional pero recomendado)
+## Fase 6 — Dominio y HTTPS (APLAZADA: el proyecto aún no cuenta con dominio propio)
 
 - [ ] Registrar/comprar dominio (fuera de Oracle; hay gratuitos como DuckDNS)
 - [ ] Apuntar registro DNS A → IP pública de la VM
@@ -179,9 +179,14 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 
 ## Fase 7 — Copias de seguridad
 
-- [ ] Backup manual de prueba (comandos en `README.md`)
-- [ ] Restauración de prueba (un backup que nunca se restauró no sirve)
-- [ ] Cron semanal en la VM + descargar copia al PC local
+- [x] Script `scripts/respaldo.sh` creado y probado: dump MariaDB +
+      archivos subidos, retención 7 días ✔ (2026-08-23)
+- [x] Restauración REAL verificada: elemento de prueba eliminado
+      (registro + PDF físico) y recuperado al 100% desde el respaldo ✔
+      (2026-08-23; procedimiento documentado en SSH.md §12)
+- [ ] Cron semanal en la VM (`crontab -e`, línea en README.md)
+- [ ] Descargar copia de respaldos al PC local
+- [ ] Nivel 2: subir respaldos a Object Storage (bucket OCI pendiente)
 
 ---
 
@@ -193,6 +198,16 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 
 - [ ] Workflow de GitHub Actions: SSH a la VM + `docker compose up -d` en cada push
 - [ ] Secrets en GitHub: clave SSH privada e IP (nunca en el código)
+
+---
+
+## Pendientes futuros (aplazados)
+
+- Tema hijo SUPOV: identidad visual (logo, colores, pie personalizado,
+  traducciones faltantes del tema público)
+- Arquitectura de información detallada: esquema de categorización por tipo
+  de documento y vistas del sitio (Actividad 3 del informe)
+- Fase 6 completa: requiere dominio propio (ver nota en Fase 6)
 
 ---
 
