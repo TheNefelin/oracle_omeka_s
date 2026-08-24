@@ -40,7 +40,7 @@ Montado sobre [Omeka S](https://omeka.org/) usando la imagen
 │  │  ├─ db_data      → base de datos          │          │
 │  │  └─ omeka_files  → documentos subidos     │          │
 │  └───────────────────────────────────────────┘          │
-│  VCN + subnet pública + IP efímera                      │
+│  VCN + subnet pública + IP pública reservada            │
 │                                                         │
 │  Object Storage (~20 GB) → destino de respaldos         │
 └─────────────────────────────────────────────────────────┘

@@ -3,9 +3,10 @@
 Guía paso a paso para conectarse a la VM de Oracle Cloud desde Windows
 PowerShell e instalar el software base del servidor.
 
-> **Estado:** estos pasos ya fueron ejecutados (ver Fases 0–2 en
+> **Estado:** todos los pasos fueron ejecutados (Fases 0–2 en
 > [PROGRESO.md](PROGRESO.md)). Este documento queda como registro del
-> procedimiento. Único pendiente: respaldo de llaves (paso 9).
+> procedimiento y guía de referencia. Llaves respaldadas (§9) y rotadas
+> el 2026-08-24 (§13).
 
 ---
 
@@ -82,14 +83,20 @@ sudo apt install fail2ban -y
 sudo systemctl status fail2ban --no-pager
 ```
 
-## 9. Respaldo de llaves privadas ⚠️ PENDIENTE
+## 9. Respaldo de llaves privadas ✅ (2026-08-24)
 
 La llave privada es **la única forma** de entrar al servidor. Si se pierde,
 el acceso se pierde. Respaldarla en carpeta segura (fuera del repositorio):
 
 ```powershell
-Copy-Item $HOME\.ssh\id_ed25519 D:\Repo\Cloud\respaldo_llaves\
-Copy-Item $HOME\.ssh\id_ed25519.pub D:\Repo\Cloud\respaldo_llaves\
+# Estado final: par ACTIVO respaldado en su propia carpeta
+D:\Repo\Cloud\respaldo_llaves\llave_ssh_2026\
+├── id_ed25519        (privada — la que usa el servidor)
+└── id_ed25519.pub    (pública)
+
+# Par ORIGINAL archivado como revocado (solo referencia histórica)
+D:\Repo\Cloud\respaldo_llaves\id_ed25519_REVOCADA
+D:\Repo\Cloud\respaldo_llaves\id_ed25519.pub_REVOCADA
 ```
 
 Alternativa recomendada adicional: gestor de contraseñas (Bitwarden, KeePass).
@@ -209,6 +216,81 @@ crontab -l
 sudo timedatectl set-timezone America/Santiago
 sudo systemctl restart cron
 ```
+- Verificar el contenido del bucket
+```sh
+rclone ls oci-backups:omeka-respaldos --max-depth 1 | tail -5
+```
+
+> ⚠️ Verificar SIEMPRE con `ls oci-backups:<bucket>`. El comando
+> `rclone lsd oci-backups:` (listar buckets desde la raíz) falla con
+> `SignatureDoesNotMatch` en el endpoint S3-compatible de OCI aunque las
+> credenciales sean correctas — no confundir con llaves malas.
+
+- Rotación de la llave del bucket: realizada el 2026-08-24. Nueva
+  Customer Secret Key activa en `rclone.conf`; par anterior eliminado en
+  consola recién después de verificar el listado del bucket.
+
+---
+
+## 13. Rotación de llaves SSH (registro 2026-08-24)
+
+Procedimiento seguro ejecutado para reemplazar la llave original sin
+riesgo de quedar fuera del servidor. Sirve como plantilla para futuras
+rotaciones.
+
+**Reglas de oro:** mantener una sesión SSH abierta durante toda la
+operación · nunca eliminar la línea vieja sin haber probado antes la
+nueva · verificar siempre antes de destruir.
+
+1. Generar el par nuevo (PC):
+
+```powershell
+ssh-keygen -t ed25519 -f $HOME\.ssh\id_ed25519_nueva -C "etiqueta-fecha"
+```
+
+2. Si Windows rechaza la llave (`WARNING: UNPROTECTED PRIVATE KEY FILE`),
+corregir permisos — equivalente a `chmod 600`:
+
+```powershell
+icacls $HOME\.ssh\id_ed25519_nueva /inheritance:r
+icacls $HOME\.ssh\id_ed25519_nueva /grant:r "${env:USERNAME}:R"
+```
+
+3. Registrar la pública nueva EN el servidor (la vieja aún funciona):
+
+```powershell
+Get-Content $HOME\.ssh\id_ed25519_nueva.pub | ssh ubuntu@IP_PUBLICA "cat >> ~/.ssh/authorized_keys"
+```
+
+4. Probar la nueva ANTES de tocar nada más:
+`ssh -i .\id_ed25519_nueva ubuntu@IP_PUBLICA`
+
+5. Identificar qué línea corresponde a cada llave — las huellas numeradas
+siguen el ORDEN de las líneas que muestra nano (no se comparan a ojo con
+el texto base64):
+
+```bash
+ssh-keygen -lf ~/.ssh/authorized_keys
+```
+
+6. En el servidor, dejar SOLO la línea de la llave nueva:
+
+```bash
+nano ~/.ssh/authorized_keys    # Ctrl+K elimina la línea completa bajo el cursor
+```
+
+7. Convertir la nueva en llave por defecto y archivar la vieja como
+revocada:
+
+```powershell
+Move-Item $HOME\.ssh\id_ed25519     D:\Repo\Cloud\respaldo_llaves\id_ed25519_REVOCADA
+Move-Item $HOME\.ssh\id_ed25519.pub D:\Repo\Cloud\respaldo_llaves\id_ed25519.pub_REVOCADA
+Rename-Item $HOME\.ssh\id_ed25519_nueva     id_ed25519
+Rename-Item $HOME\.ssh\id_ed25519_nueva.pub id_ed25519.pub
+```
+
+8. Respaldar el par nuevo (`llave_ssh_2026\`) y verificar el cierre: una
+conexión con la llave antigua debe ser **RECHAZADA** (`Permission denied`).
 
 ---
 

@@ -8,7 +8,10 @@ gratuita (Oracle Cloud Free Tier).
 Bitácora del despliegue paso a paso. Este archivo se va actualizando en cada
 sesión: los pasos hechos llevan `[x]`, los pendientes `[ ]`.
 
-**Dónde estamos ahora:** Fase 2 completada ✔ → Fase 3 (desplegar Omeka S).
+**Dónde estamos ahora:** proyecto tecnológico **CERRADO** ✔
+(2026-08-24) — infraestructura, respaldos, alertas y seguridad completos.
+Quedan fuera del alcance tecnológico: dominio/HTTPS (Fase 6, aplazada
+por falta de dominio propio), identidad visual y carga del acervo.
 
 ---
 
@@ -36,7 +39,7 @@ sesión: los pasos hechos llevan `[x]`, los pendientes `[ ]`.
 │  │  ├─ db_data      → base de datos          │          │
 │  │  └─ omeka_files  → documentos subidos     │          │
 │  └───────────────────────────────────────────┘          │
-│  VCN + subnet pública + IP efímera                      │
+│  VCN + subnet pública + IP pública reservada            │
 │                                                         │
 │  Object Storage (~20 GB) → destino de respaldos [F7]    │
 └─────────────────────────────────────────────────────────┘
@@ -75,7 +78,7 @@ Credenciales: .env (fuera de git) — Config: docker-compose.yml (versionado)
 | Dato | Valor |
 |---|---|
 | Nombre instancia | `omeka-vm` |
-| IP pública | *(ver archivo local — efímera)* |
+| IP pública | *(ver archivo local — reservada)* |
 | Usuario SSH | `ubuntu` |
 | Región | Chile West (Valparaíso), AD-1 |
 | Shape | VM.Standard.A1.Flex — 2 OCPU / 12 GB |
@@ -201,6 +204,10 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
       (ventanas de minutos no capturan los puntos). Vigilancia de disco
       VM: línea `[INFO] Disco:` en respaldo.log; sin riesgo de cobro por
       OCPU/RAM/disco fijados al crear la instancia
+- [x] Cadena cron verificada: entrada presente (`crontab -l`) +
+      `cron.service` active/enabled ✔ (2026-08-24). Primera ejecución
+      automática esperada: domingo 2026-08-30 03:00 (confirmar con
+      `tail ~/omeka-backups/respaldo.log`)
 
 ---
 
@@ -229,13 +236,19 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
       creada y no deja cambiar en frío; se resolvió vía Cloud Shell
       liberando la efímera y asignando la reservada con
       `oci network public-ip update`
-- Rotación de credenciales al cierre del proyecto (en orden seguro):
-  a) SSH: generar par nuevo → agregar la pública nueva al servidor →
-     probar login con la nueva → recién entonces eliminar la línea
-     antigua (esto revoca el acceso SSH del agente)
-  b) Bucket: generar nueva Customer Secret Key → actualizar
-     `access_key_id` y `secret_access_key` en `rclone.conf` de la VM →
-     verificar con `rclone ls` → eliminar el par antiguo en consola
+- [x] Rotación de credenciales al cierre del proyecto ✔ (2026-08-24):
+      a) SSH: par nuevo generado, pública registrada en el servidor,
+      login probado con la nueva y solo entonces línea antigua eliminada
+      de `authorized_keys`. Acceso del agente revocado — verificado con
+      conexión rechazada (`Permission denied`). Par nuevo por defecto
+      (`id_ed25519`, comentario `omeka-2026`) y respaldado en PC; antiguo
+      archivado como `*_REVOCADA`. Procedimiento documentado en SSH.md §13
+      b) Bucket: nueva Customer Secret Key activa en `rclone.conf`;
+      par anterior eliminado en consola recién tras verificar el listado
+      del bucket con `rclone ls`. Lección: `rclone lsd oci-backups:`
+      (raíz) falla con `SignatureDoesNotMatch` en el endpoint
+      S3-compatible de OCI aunque las credenciales sean válidas — hizo
+      pasar dos pares buenos por malos durante el diagnóstico
 
 ---
 
@@ -281,3 +294,6 @@ Total estimado: 70 horas (detalle completo en el informe institucional).
 | 2026-08-21 | Falso positivo "`.env` no copiado": los archivos con punto inicial son ocultos para `ls`; verificar siempre con `ls -la` |
 | 2026-08-24 | Respaldo de llaves SSH completado. Devolucion ~1000 CLP aun no reflejada: en plazo normal (5-10 dias habiles desde el 21; reclamar al banco si no llega hacia el 10-sep) |
 | 2026-08-24 | Fase 7 nivel 2: autenticacion Swift fallo con usuario de dominio de identidad (HTTP 400); se pivoto a API S3-compatible de OCI (Access Key + Secret) funcionando al primer intento. Decision: convencion de nombres fecha-primero (20260824_HHMM_db.sql). Servidor configurado en America/Santiago para cron y logs locales |
+| 2026-08-24 | Rotacion SSH completada: nueva llave por defecto, linea antigua eliminada del servidor, acceso del agente revocado y verificado con conexion rechazada |
+| 2026-08-24 | Rotacion de bucket: diagnostico alargado por falso positivo — `rclone lsd` en raiz falla siempre en el endpoint S3-compatible aunque las credenciales sean buenas; verificacion correcta es `ls oci-backups:<bucket>`. Par nuevo activo y probado (subida incluida), par antiguo eliminado |
+| 2026-08-24 | CIERRE del proyecto tecnologico: infraestructura + respaldos + alertas + seguridad completos y documentados. Quedan fuera: dominio/HTTPS (aplazado), identidad visual SUPOV y carga del acervo |
