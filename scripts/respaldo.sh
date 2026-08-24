@@ -46,3 +46,6 @@ if rclone copy "$BACKUP_DIR" "oci-backups:omeka-respaldos/" --max-age 24h --quie
 else
   log "[WARN] No se pudo subir al bucket (revisar conexión con: rclone lsd oci-backups:)"
 fi
+
+# --- 5. Bitácora de salud del disco ---
+log "[INFO] Disco: $(df -h / --output=used,size,pcent | tail -n 1)"

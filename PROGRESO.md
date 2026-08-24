@@ -192,6 +192,15 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 - [x] Copia de respaldos al PC local descargada desde el bucket ✔
       (`respaldo_llaves\respaldos_bucket\`) — datos en 3 ubicaciones
       (2026-08-24)
+- [x] Sistema de alertas OCI: topic `alertas-omeka` (2 correos) +
+      alarma `bucket-espacio-alerta` sobre métrica StoredBytes
+      (dispara a 8 GiB = 80% del cupo Standard, recordatorio 24 h) ✔
+      (2026-08-24). Disparo verificado end-to-end bajando el umbral a
+      prueba y restaurándolo. Aprendizaje clave: StoredBytes se publica
+      con cadencia lenta → Interval de evaluación debe ser `1 hour`
+      (ventanas de minutos no capturan los puntos). Vigilancia de disco
+      VM: línea `[INFO] Disco:` en respaldo.log; sin riesgo de cobro por
+      OCPU/RAM/disco fijados al crear la instancia
 
 ---
 
