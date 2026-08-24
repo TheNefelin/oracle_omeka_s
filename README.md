@@ -148,11 +148,14 @@ Cron semanal (domingo 3:00 AM), en el servidor:
 ```bash
 crontab -e
 # agregar la línea:
-0 3 * * 0 /home/ubuntu/omeka/scripts/respaldo.sh >> /home/ubuntu/omeka-backups/cron.log 2>&1
+0 3 * * 0 /home/ubuntu/omeka/scripts/respaldo.sh
 ```
 
-> ⚠️ Los respaldos viven en la misma VM. La subida a Object Storage
-> (protección fuera de la VM) está pendiente — ver Fase 7 en PROGRESO.md.
+El script registra cada corrida en `~/omeka-backups/respaldo.log`
+(mensajes `[OK]`/`[WARN]` con fecha y hora).
+
+> ⚠️ Los respaldos viven en la misma VM. La copia histórica está en el
+> bucket OCI `omeka-respaldos` (Object Storage) — ver Fase 7 en PROGRESO.md.
 
 ### Comandos manuales
 

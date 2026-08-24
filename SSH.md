@@ -139,7 +139,7 @@ docker run --rm -v omeka_omeka_files:/data alpine find /data/files -type f
 ```
 - Restaurar respaldo
 
-> Los nombres de archivo (`db_FECHA_HHMM.sql`, `files_FECHA_HHMM.tar.gz`)
+> Los nombres de archivo (`FECHA_HHMM_db.sql`, `FECHA_HHMM_files.tar.gz`)
 > cambian con cada respaldo — usa el más reciente de `~/omeka-backups/`.
 
 ```sh
@@ -149,9 +149,9 @@ docker compose stop omeka
 # 2. Vaciar y recrear la base de datos (usa el nombre de TU .env)
 docker compose exec -T mariadb sh -c 'exec mariadb -u root -p"$MARIADB_ROOT_PASSWORD" -e "DROP DATABASE $MARIADB_DATABASE; CREATE DATABASE $MARIADB_DATABASE;"'
 # 3. Importar el respaldo de las 22:32
-docker compose exec -T mariadb sh -c 'exec mariadb -u root -p"$MARIADB_ROOT_PASSWORD" $MARIADB_DATABASE' < ~/omeka-backups/db_2026-08-23_2232.sql
+docker compose exec -T mariadb sh -c 'exec mariadb -u root -p"$MARIADB_ROOT_PASSWORD" $MARIADB_DATABASE' < ~/omeka-backups/20260824_1815_db.sql
 # 4. Reincorporar los archivos del respaldo al volumen
-docker run --rm -v omeka_omeka_files:/data -v ~/omeka-backups:/backup alpine tar xzf /backup/files_2026-08-23_2232.tar.gz -C /data
+docker run --rm -v omeka_omeka_files:/data -v ~/omeka-backups:/backup alpine tar xzf /backup/20260824_1815_files.tar.gz -C /data
 # 5. Corregir propietario de los archivos (igual que hace el contenedor)
 docker run --rm -v omeka_omeka_files:/data alpine chown -R nobody:nobody /data
 # 6. Levantar Omeka
@@ -164,6 +164,51 @@ docker run --rm -v omeka_omeka_files:/data alpine find /data/files -type f
 ```
 El PDF eliminado debe reaparecer, y el elemento volver a la lista de
 Elementos del panel con su ficha funcional.
+
+- Backup
+```sh
+ssh ubuntu@IP_PUBLICA
+sudo apt install -y rclone
+rclone version    # verificar que instaló
+```
+- Configuración 
+```sh
+mkdir -p ~/.config/rclone
+nano ~/.config/rclone/rclone.conf
+```
+```sh
+[oci-backups]
+type = s3
+provider = Other
+access_key_id = ACCESS_KEY
+secret_access_key = SECRET_ACCESS_KEY
+endpoint = https://axxyz5xiuzy3.compat.objectstorage.sa-valparaiso-1.oraclecloud.com
+```
+- Actualizar respaldo.sh
+```sh
+scp scripts/respaldo.sh ubuntu@IP_PUBLICA:~/omeka/scripts/
+```
+- Ejecutar script
+```sh
+bash ~/omeka/scripts/respaldo.sh
+```
+- Cronometro para ejecutar el .sh
+```sh
+crontab -e
+```
+- Todos los domingos a las 3:00 de la madrugada, ejecuta el script de respaldo
+```sh
+0 3 * * 0 /home/ubuntu/omeka/scripts/respaldo.sh
+```
+- Verificar la tarea
+```sh
+crontab -l
+```
+- Cambiar zona horaria de la VM y reiniciar crono
+```sh
+sudo timedatectl set-timezone America/Santiago
+sudo systemctl restart cron
+```
 
 ---
 

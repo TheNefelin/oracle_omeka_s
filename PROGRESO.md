@@ -125,7 +125,7 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 - [x] `sudo usermod -aG docker ubuntu` + relogin ✔
 - [x] Verificado: Docker 29.7.2 / Compose v5.5.0 sin sudo
 - [x] Fail2ban instalado ✔
-- [ ] Respaldo de la llave privada SSH en ubicación segura (pendrive/gestor) ← importante
+- [x] Respaldo de llaves SSH realizado en ubicación segura ✔
 
 ---
 
@@ -184,9 +184,14 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 - [x] Restauración REAL verificada: elemento de prueba eliminado
       (registro + PDF físico) y recuperado al 100% desde el respaldo ✔
       (2026-08-23; procedimiento documentado en SSH.md §12)
-- [ ] Cron semanal en la VM (`crontab -e`, línea en README.md)
-- [ ] Descargar copia de respaldos al PC local
-- [ ] Nivel 2: subir respaldos a Object Storage (bucket OCI pendiente)
+- [x] Nivel 2 — Object Storage: bucket `omeka-respaldos` (Private,
+      Standard) + rclone en VM vía API S3-compatible + subida integrada
+      al script con registro de auditoría `respaldo.log` ✔ (2026-08-24)
+- [x] Cron semanal: domingos 3:00 AM hora chilena (servidor en zona
+      America/Santiago) ✔ (2026-08-24)
+- [x] Copia de respaldos al PC local descargada desde el bucket ✔
+      (`respaldo_llaves\respaldos_bucket\`) — datos en 3 ubicaciones
+      (2026-08-24)
 
 ---
 
@@ -208,6 +213,9 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 - Arquitectura de información detallada: esquema de categorización por tipo
   de documento y vistas del sitio (Actividad 3 del informe)
 - Fase 6 completa: requiere dominio propio (ver nota en Fase 6)
+- Rotación de credenciales al cierre del proyecto: nueva llave SSH
+  (actualizar `authorized_keys` del servidor), nueva Customer Secret Key
+  para el bucket, y revocar el acceso SSH del agente (`authorized_keys`)
 
 ---
 
@@ -251,3 +259,5 @@ Total estimado: 70 horas (detalle completo en el informe institucional).
 | 2026-08-21 | Despliegue exitoso: `omeka` + `omeka-mariadb` healthy en ARM. Sitio accesible por IP:8080 |
 | 2026-08-21 | Hallazgo: puertos Docker no requieren iptables del host (solo Security List OCI); se corrige documentación §6 de la guía Oracle |
 | 2026-08-21 | Falso positivo "`.env` no copiado": los archivos con punto inicial son ocultos para `ls`; verificar siempre con `ls -la` |
+| 2026-08-24 | Respaldo de llaves SSH completado. Devolucion ~1000 CLP aun no reflejada: en plazo normal (5-10 dias habiles desde el 21; reclamar al banco si no llega hacia el 10-sep) |
+| 2026-08-24 | Fase 7 nivel 2: autenticacion Swift fallo con usuario de dominio de identidad (HTTP 400); se pivoto a API S3-compatible de OCI (Access Key + Secret) funcionando al primer intento. Decision: convencion de nombres fecha-primero (20260824_HHMM_db.sql). Servidor configurado en America/Santiago para cron y logs locales |
