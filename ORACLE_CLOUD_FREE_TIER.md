@@ -307,6 +307,68 @@ Cuando crezca:
 
 ---
 
+# 12. Mapa de la consola OCI
+
+Referencia de navegación: dónde vive cada pieza del proyecto dentro de
+la consola web (menú ☰ en la esquina superior izquierda).
+
+## Compute
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Compute → Instances → `omeka-vnic` | La instancia: shape (2 OCPU / 12 GB), SO, IP pública en uso |
+| instancia → pestaña *Networking* → Attached VNICs → VNIC → IPv4 Addresses | IP privada + IP pública con etiqueta `(Reserved)` |
+
+## Networking
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Networking → Virtual cloud networks → `vcn-20260821-1523` | El VCN completo del proyecto |
+| VCN → Security Lists → Default Security List | ⚠️ **LAS REGLAS DE FIREWALL** (ingress 22 y 8080) |
+| VCN → Subnets | La subred regional |
+| Networking → IP management → Reserved public IPs | `omeka-ip-estatica` (estado Assigned = adjunta a la VM) |
+
+> Las reglas de firewall de OCI NO están en la VM ni en Compute:
+> viven dentro del VCN → Security Lists.
+
+## Object Storage & Archive
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Object Storage & Archive → Buckets → `omeka-respaldos` | El bucket; pestaña *Objects* = los respaldos subidos |
+
+## Billing & Cost Management
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Billing & Cost Management → Budgets → `Alerta-Gastos` | Presupuesto $1/mes con alertas al 50% y 100% |
+| Billing & Cost Management → Cost Analysis | Verificar que todo sigue en $0 |
+
+## Observability & Management
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Observability & Management → Monitoring → Alarm Definitions → `bucket-espacio-alerta` | Alarma del bucket: estado Ok/Firing, umbral 8 GiB, intervalo 1 hora |
+
+## Developer Services
+
+| Ruta | Qué vive ahí |
+|---|---|
+| Developer Services → Notifications → Topics → `alertas-omeka` | Topic + suscripciones de correo; botón *Publish Message* para pruebas |
+
+## Perfil de usuario (icono superior derecho)
+
+| Ruta | Qué vive ahí |
+|---|---|
+| My profile → Token and Keys → Customer Secret Keys | Credenciales que usa rclone para el bucket |
+
+## Barra superior de la consola
+
+| Elemento | Para qué |
+|---|---|
+| Ícono `>_` (Cloud Shell) | Terminal pre-autenticada con comandos `oci` — se usó para asignar la IP reservada |
+| Selector de región (esquina derecha) | Debe decir **Chile West (Valparaíso)** o las listas se ven vacías |
+
 # Checklist antes de publicar
 
 [ ] HTTPS configurado

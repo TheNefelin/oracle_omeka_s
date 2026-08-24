@@ -222,9 +222,20 @@ Guía detallada: `ORACLE_CLOUD_FREE_TIER.md` sección 3.
 - Arquitectura de información detallada: esquema de categorización por tipo
   de documento y vistas del sitio (Actividad 3 del informe)
 - Fase 6 completa: requiere dominio propio (ver nota en Fase 6)
-- Rotación de credenciales al cierre del proyecto: nueva llave SSH
-  (actualizar `authorized_keys` del servidor), nueva Customer Secret Key
-  para el bucket, y revocar el acceso SSH del agente (`authorized_keys`)
+- [x] IP pública convertida a **Reserved** ✔ (2026-08-24):
+      dirección permanente nueva (ver consola: Reserved public IPs),
+      adjunta a `omeka-vnic`, $0 mientras esté asignada. Nota técnica:
+      el diálogo de consola no ofrece "Reserved" hasta que exista una
+      creada y no deja cambiar en frío; se resolvió vía Cloud Shell
+      liberando la efímera y asignando la reservada con
+      `oci network public-ip update`
+- Rotación de credenciales al cierre del proyecto (en orden seguro):
+  a) SSH: generar par nuevo → agregar la pública nueva al servidor →
+     probar login con la nueva → recién entonces eliminar la línea
+     antigua (esto revoca el acceso SSH del agente)
+  b) Bucket: generar nueva Customer Secret Key → actualizar
+     `access_key_id` y `secret_access_key` en `rclone.conf` de la VM →
+     verificar con `rclone ls` → eliminar el par antiguo en consola
 
 ---
 
